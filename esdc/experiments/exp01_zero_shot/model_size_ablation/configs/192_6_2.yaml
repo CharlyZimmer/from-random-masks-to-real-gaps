@@ -1,0 +1,25 @@
+experiment:
+  id: "exp01_zero_shot_192_6_2"
+  description: "Model-size ablation of exp01_zero_shot: ViT shrunk to embed_dim=192, depth=6, num_heads=2 (vs. the ViT-Ti 192/12/3 baseline), trained from scratch, evaluated zero-shot."
+  type: "zero_shot"
+
+  parent_experiment: "exp01_zero_shot"
+
+data:
+  train_lmdb: "${ESDC_DATA_DIR}/lmdb/dataset.lmdb"  # same LMDB as exp01_zero_shot -- only architecture differs
+  test_lmdb:  "${ESDC_DATA_DIR}/lmdb/dataset_test.lmdb"
+  eval_h5:    "${ESDC_GAP_FILLING_DIR}/dataset.h5"
+
+model:
+  embed_dim: 192  # ablation variable
+  depth: 6        # ablation variable
+  num_heads: 2    # ablation variable
+  pretrained_checkpoint: null
+  pretrained_log_dir: "esdc/lightning_logs/experiments/exp01_zero_shot/model_size_ablation/192_6_2"
+
+training:
+  gap_only_masking: false  # pre-training uses random masking, not gap-only -- same as exp01_zero_shot
+  log_dir: "esdc/lightning_logs/experiments/exp01_zero_shot/model_size_ablation/192_6_2"
+
+slurm:
+  job_name: "exp01_192_6_2_pretrain"

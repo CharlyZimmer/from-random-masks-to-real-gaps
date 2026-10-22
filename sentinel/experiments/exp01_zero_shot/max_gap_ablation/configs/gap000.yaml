@@ -1,0 +1,22 @@
+experiment:
+  id: "exp01_zero_shot_gap000"
+  description: "Ablation of exp01_zero_shot: pre-training LMDB post-hoc filtered to max_gap_ratio=0.0 (fully gap-free middle frames only, measured on band 0 as a representative channel), vs. the 0.2 creation-time-capped (effectively unfiltered) baseline."
+  type: "zero_shot"
+
+  parent_experiment: "exp01_zero_shot"
+
+data:
+  train_lmdb: "${S2_LMDB_PATH}"  # same LMDB as exp01_zero_shot -- filtering happens at training time, not via a separate dataset
+  eval_dir:   "${S2_DATA_DIR}/gap_filling"
+  max_gap_ratio: 0.0  # ablation variable -- post-hoc filter, applied by LMDBConsecutiveDataModule
+
+model:
+  pretrained_checkpoint: null
+  pretrained_log_dir: "sentinel/lightning_logs/experiments/exp01_zero_shot/max_gap_ablation/gap000"
+
+training:
+  gap_only_masking: false  # pre-training uses random masking, not gap-only -- same as exp01_zero_shot
+  log_dir: "sentinel/lightning_logs/experiments/exp01_zero_shot/max_gap_ablation/gap000"
+
+slurm:
+  job_name: "exp01_gap000_pretrain"

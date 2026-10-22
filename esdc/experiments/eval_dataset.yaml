@@ -1,0 +1,25 @@
+# Canonical evaluation dataset for all ESDC gap-filling experiments.
+#
+# All experiments MUST evaluate on the same dataset so results are comparable.
+# The path is resolved at runtime from $ESDC_GAP_FILLING_DIR (see .env.example).
+#
+# Local vs HPC:
+#   Local  (esdc/scripts/local/create_gapfilling_dataset.sh):
+#     2004-01-01 to 2004-06-01 — used only for pipeline sanity checks.
+#   HPC    (esdc/scripts/slurm/create_gapfilling_dataset.sh):
+#     Last year of ESDC LST coverage — the definitive held-out test set.
+
+dataset_properties:
+  primary_variable: "land_surface_temperature"
+  intended_time_range: "last year of ESDC LST coverage (temporally disjoint from all training data)"
+  syn_gaps: true
+  no_split: true                       # all samples in X_train / y_train
+  max_gap_portion: 0.2
+  normalization_valid_range: [180.0, 360.0]
+  created_with: "esdc/scripts/slurm/create_gapfilling_dataset.sh"
+
+evaluation_protocol:
+  metric: "MAE over synthetic gap pixels in the middle frame"
+  reported_units: "normalized [0,1] and Kelvin (scale = valid_range[1] - valid_range[0] = 180 K)"
+  all_samples: true                    # num_samples=null — evaluate on the full dataset
+  seed: 42                             # for any sub-sampling during local sanity checks

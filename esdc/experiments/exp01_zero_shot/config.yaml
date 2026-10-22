@@ -1,0 +1,22 @@
+experiment:
+  id: "exp01_zero_shot"
+  description: "Pre-trained MaskFeat model evaluated directly on gap-filling — no fine-tuning."
+  type: "zero_shot"
+
+  parent_experiment: null
+
+data:
+  train_lmdb: "${ESDC_DATA_DIR}/lmdb/dataset.lmdb"  # pre-training LMDB (no synthetic gaps)
+  test_lmdb:  "${ESDC_DATA_DIR}/lmdb/dataset_test.lmdb"
+  eval_h5:    "${ESDC_GAP_FILLING_DIR}/dataset.h5"
+
+model:
+  pretrained_checkpoint: null
+  pretrained_log_dir: "esdc/lightning_logs/experiments/exp01_zero_shot"
+
+training:
+  gap_only_masking: false  # pre-training uses random masking, not gap-only
+  log_dir: "esdc/lightning_logs/experiments/exp01_zero_shot"
+
+slurm:
+  job_name: "exp01_pretrain"

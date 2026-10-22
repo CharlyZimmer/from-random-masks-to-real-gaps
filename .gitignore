@@ -1,0 +1,53 @@
+img/
+.env
+**/.ipynb_checkpoints/*
+**/.vscode/*
+**/__pycache__/*
+**/srun_outputs/*
+**/checkpoints/*
+**/lightning_logs/
+**/esdc/data/*
+**/sentinel/data/*
+!**/sentinel/data/*.csv
+**/checked_locations.csv
+**/sentinel/slurm_logs/*
+**/esdc/slurm_logs/*
+**esdc/results/*
+**/sentinel/results/*
+**/results/*
+!esdc/experiments/*/results/*.json
+!esdc/experiments/eval_dataset.yaml
+!sentinel/experiments/*/results/*.json
+!sentinel/experiments/eval_dataset.yaml
+
+# exp02_finetuning/sample_ablation nests one level deeper (results/n*/*.json)
+# than the standard experiments (results/*.json), so it needs its own
+# exceptions -- **/results/* ignores the n*/ dirs themselves, and a file
+# can't be re-included while its parent directory is excluded.
+!esdc/experiments/exp02_finetuning/sample_ablation/results/n*/
+!esdc/experiments/exp02_finetuning/sample_ablation/results/n*/*.json
+!esdc/experiments/exp02_finetuning/sample_ablation/results/RESULTS.md
+!esdc/experiments/exp02_finetuning/sample_ablation/results/loss_vs_samples.png
+
+# exp01_zero_shot/max_gap_ablation nests one level deeper (results/gap*/*.json)
+# than the standard experiments, same reason as sample_ablation above.
+!esdc/experiments/exp01_zero_shot/max_gap_ablation/results/gap*/
+!esdc/experiments/exp01_zero_shot/max_gap_ablation/results/gap*/*.json
+!esdc/experiments/exp01_zero_shot/max_gap_ablation/results/RESULTS.md
+
+# exp01_zero_shot/model_size_ablation nests one level deeper (results/<dim_depth_heads>/*.json)
+# than the standard experiments, same reason as sample_ablation above.
+!esdc/experiments/exp01_zero_shot/model_size_ablation/results/*/
+!esdc/experiments/exp01_zero_shot/model_size_ablation/results/*/*.json
+!esdc/experiments/exp01_zero_shot/model_size_ablation/results/RESULTS.md
+
+# sentinel/exp02_finetuning/sample_ablation -- Sentinel port of ESDC's
+# sample_ablation above, same nesting reason.
+!sentinel/experiments/exp02_finetuning/sample_ablation/results/n*/
+!sentinel/experiments/exp02_finetuning/sample_ablation/results/n*/*.json
+!sentinel/experiments/exp02_finetuning/sample_ablation/results/RESULTS.md
+!sentinel/experiments/exp02_finetuning/sample_ablation/results/loss_vs_samples.png
+
+/sentinel/experiments/exp01_zero_shot/max_gap_ablation/results/gap*/
+!sentinel/experiments/exp01_zero_shot/max_gap_ablation/results/gap*/*.json
+!sentinel/experiments/exp01_zero_shot/max_gap_ablation/results/RESULTS.md

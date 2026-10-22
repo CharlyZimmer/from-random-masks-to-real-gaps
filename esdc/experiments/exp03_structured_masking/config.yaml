@@ -1,0 +1,23 @@
+experiment:
+  id: "exp03_structured_masking"
+  description: "Pre-trained MaskFeat model using BEiT-style block masking instead of random masking, evaluated zero-shot on gap-filling."
+  type: "structured_masking"
+
+  parent_experiment: null
+
+data:
+  train_lmdb: "${ESDC_DATA_DIR}/lmdb/dataset.lmdb"  # pre-training LMDB (no synthetic gaps) — same as exp01
+  test_lmdb:  "${ESDC_DATA_DIR}/lmdb/dataset_test.lmdb"
+  eval_h5:    "${ESDC_GAP_FILLING_DIR}/dataset.h5"
+
+model:
+  pretrained_checkpoint: null
+  pretrained_log_dir: "esdc/lightning_logs/experiments/exp03_structured_masking"
+
+training:
+  gap_only_masking: false     # same masking budget as exp01, different shape (see structured_masking)
+  structured_masking: true    # replace random (scattered) masking with a single BEiT-style block mask
+  log_dir: "esdc/lightning_logs/experiments/exp03_structured_masking"
+
+slurm:
+  job_name: "exp03_pretrain"

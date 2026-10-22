@@ -1,0 +1,46 @@
+name: gap-aware
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  # Deep learning (conda-forge picks a CUDA build on GPU machines)
+  - pytorch=2.5.1
+  - torchvision=0.20.1
+  - pytorch-lightning=2.5.5
+  - einops=0.8
+  # Data handling
+  - numpy=2.4
+  - pandas=3.0
+  - scipy=1.17
+  - xarray=2025.6.1
+  - dask=2026.3.0
+  - zarr=3.1.6
+  - fsspec
+  - h5py=3.16
+  - python-lmdb=2.2
+  - pyyaml
+  - tqdm
+  - joblib
+  # Geospatial
+  - geopandas=1.1
+  - pyogrio
+  - rasterio=1.4
+  - shapely=2.1
+  - rtree=1.4
+  - pyshp
+  - regionmask=0.13
+  - pykrige=1.7
+  # Visualization and notebooks
+  - matplotlib=3.10
+  - cmocean
+  - tensorboard=2.20
+  - jupyter
+  - ipykernel
+  - pip
+  - pip:
+      # Sentinel-2 download via Google Earth Engine
+      - earthengine-api==1.7.31
+      - google-api-python-client
+      - global-land-mask==1.0.0
+      # ESDC dataset building and data cube gap filling
+      - patchfill @ git+https://github.com/CharlyZimmer/patchfill.git@v0.1.0

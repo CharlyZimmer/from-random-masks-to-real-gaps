@@ -1,0 +1,22 @@
+experiment:
+  id: "exp04_scratch_gapfilling"
+  description: "Training from scratch on the gap-filling dataset (gap_only_masking). Baseline for ablations."
+  type: "training_from_scratch"
+
+  parent_experiment: null
+
+data:
+  train_lmdb:   "${ESDC_GAP_FILLING_TRAINING_DIR}/lmdb/dataset.lmdb"
+  train_lmdb_y: "${ESDC_GAP_FILLING_TRAINING_DIR}/lmdb/dataset_y.lmdb"
+  test_lmdb:    "${ESDC_GAP_FILLING_TRAINING_DIR}/lmdb/dataset_test.lmdb"
+  test_lmdb_y:  "${ESDC_GAP_FILLING_TRAINING_DIR}/lmdb/dataset_test_y.lmdb"
+  eval_h5:      "${ESDC_GAP_FILLING_DIR}/dataset.h5"
+  max_gap_portion: 0.2
+  gap_donor_min_ratio: 0.05
+  gap_donor_max_ratio: 0.85
+
+training:
+  log_dir: "esdc/lightning_logs/experiments/exp04_scratch_gapfilling"
+
+slurm:
+  job_name: "exp04_scratch"

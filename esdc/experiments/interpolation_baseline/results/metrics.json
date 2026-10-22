@@ -1,0 +1,17 @@
+{
+  "mean_mae_normalized": 0.019518502093139014,
+  "mean_mae_kelvin": 3.5133,
+  "per_band_mae_normalized": [
+    0.019518502093139014
+  ],
+  "per_band_mae_kelvin": [
+    3.5133
+  ],
+  "n_samples": 3614,
+  "gap_coverage_mean": 0.741302946224751,
+  "gap_coverage_std": 0.1325699360458047,
+  "norm_range": [
+    180.0,
+    360.0
+  ]
+}

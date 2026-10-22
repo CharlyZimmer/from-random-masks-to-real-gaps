@@ -1,0 +1,22 @@
+{
+  "experiment_id": "exp01_zero_shot",
+  "checkpoint_path": "sentinel/lightning_logs/experiments/exp01_zero_shot/version_3/checkpoints/gapfiller-epoch=45-MAE_val=0.0097.ckpt",
+  "pretrained_checkpoint_path": null,
+  "num_finetuning_samples": 194805,
+  "eval_dataset_path": "sentinel/data/gap_filling",
+  "eval_date": "2026-08-24T10:22:52",
+  "git_commit": "49c3bab78e4d73379ab843e1890ba9110a4455ef",
+  "model": {
+    "num_params": 11895136,
+    "num_trainable_params": 11895136,
+    "embed_dim": 192,
+    "depth": 12,
+    "num_heads": 3,
+    "decoder_heads": 1,
+    "patch_size": 4,
+    "image_size": 128,
+    "num_frames": 5,
+    "in_channels": 10,
+    "out_channels": 10
+  }
+}

@@ -1,0 +1,23 @@
+experiment:
+  id: "exp01_zero_shot_gap010"
+  description: "Ablation of exp01_zero_shot: pre-training LMDB post-hoc filtered to max_gap_ratio=0.1, vs. the 0.2 (unfiltered) baseline."
+  type: "zero_shot"
+
+  parent_experiment: "exp01_zero_shot"
+
+data:
+  train_lmdb: "${ESDC_DATA_DIR}/lmdb/dataset.lmdb"  # same LMDB as exp01_zero_shot -- filtering happens at training time, not via a separate dataset
+  test_lmdb:  "${ESDC_DATA_DIR}/lmdb/dataset_test.lmdb"
+  eval_h5:    "${ESDC_GAP_FILLING_DIR}/dataset.h5"
+  max_gap_ratio: 0.1  # ablation variable -- post-hoc filter, applied by LMDBConsecutiveDataModule
+
+model:
+  pretrained_checkpoint: null
+  pretrained_log_dir: "esdc/lightning_logs/experiments/exp01_zero_shot/max_gap_ablation/gap010"
+
+training:
+  gap_only_masking: false  # pre-training uses random masking, not gap-only -- same as exp01_zero_shot
+  log_dir: "esdc/lightning_logs/experiments/exp01_zero_shot/max_gap_ablation/gap010"
+
+slurm:
+  job_name: "exp01_gap010_pretrain"

@@ -1,0 +1,54 @@
+# Shared config for all esdc experiments.
+# ViT-Ti configuration (embed_dim 192, depth 12, num_heads 3), matching
+# sentinel/experiments/shared_config.yaml — same architecture family used for
+# all experiments across both dataset modules.
+# The standalone pre-training scripts (esdc/scripts/*/training.sh) use a
+# separate 384/8/6 architecture and do not read this file.
+#
+# Per-experiment configs override only what differs. Merge order:
+#   shared_config.yaml  <  experiment/config.yaml  <  CLI flags (local sanity runs)
+
+model:
+  patch_size: 4
+  embed_dim: 192
+  depth: 12
+  num_heads: 3
+  decoder_heads: 1
+  loss_type: "mae"
+  pretrained_checkpoint: null  # exp02 auto-discovers exp01's checkpoint via model.pretrained_log_dir
+
+training:
+  max_epochs: 50
+  batch_size: 16
+  num_workers: 6
+  val_split: 0.05
+  base_lr: 1.0e-4
+  warmup_steps: 10000
+  accumulate_grad_batches: 1
+  gap_only_masking: true       # exp01 overrides to false (pre-training uses random masking)
+  precision: "16-mixed"
+  accelerator: "cuda"
+  devices: 4
+  # log_dir: experiment-specific
+
+slurm:
+  partition: "clara"
+  gres: "gpu:rtx2080ti:4"
+  nodes: 1
+  ntasks_per_node: 4
+  cpus_per_task: 4
+  mem: "128G"
+  time: "2-00:00:00"
+  # job_name: experiment-specific
+
+eval:
+  batch_size: 16
+  device: "cuda"
+  seed: 42
+
+data:
+  variables:
+    primary: "land_surface_temperature"
+    aux: ["air_temperature_2m"]
+  normalization:
+    valid_range: [180.0, 360.0]

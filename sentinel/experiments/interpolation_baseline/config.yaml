@@ -1,0 +1,17 @@
+experiment:
+  id: "interpolation_baseline"
+  description: "Ordinary Kriging spatial interpolation baseline (no learned model), fit independently per band."
+  type: "non_learned_baseline"
+
+  parent_experiment: null
+
+data:
+  eval_dir: "${S2_DATA_DIR}/gap_filling"
+
+kriging:
+  variogram_model: "linear"
+  max_obs_points: 2000  # subsample cap for tractability at 128x128 (see evaluate_kriging_baseline.py)
+  n_jobs: 1
+
+slurm:
+  job_name: "interp_baseline_eval"

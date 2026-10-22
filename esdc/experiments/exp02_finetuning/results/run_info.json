@@ -1,0 +1,22 @@
+{
+  "experiment_id": "exp02_finetuning",
+  "checkpoint_path": "esdc/lightning_logs/experiments/exp02_finetuning/version_3/checkpoints/lst-gapfiller-epoch=09-MAE_val=0.0101.ckpt",
+  "pretrained_checkpoint_path": "esdc/lightning_logs/experiments/exp01_zero_shot/version_0/checkpoints/lst-gapfiller-epoch=48-MAE_val=0.0097.ckpt",
+  "num_finetuning_samples": 100,
+  "eval_dataset_path": "esdc/data/lst_gap_filling/dataset.h5",
+  "eval_date": "2026-08-03T18:19:22",
+  "git_commit": "8827619f99148601e32ef317ecc0007b540e2ca1",
+  "model": {
+    "num_params": 11105488,
+    "num_trainable_params": 11105488,
+    "embed_dim": 192,
+    "depth": 12,
+    "num_heads": 3,
+    "decoder_heads": 1,
+    "patch_size": 4,
+    "image_size": 64,
+    "num_frames": 5,
+    "in_channels": 2,
+    "out_channels": 1
+  }
+}

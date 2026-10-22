@@ -1,0 +1,22 @@
+{
+  "experiment_id": "exp02_finetuning_n6400",
+  "checkpoint_path": "sentinel/lightning_logs/experiments/exp02_finetuning/sample_ablation/n6400/version_1/checkpoints/gapfiller-epoch=08-MAE_val=0.0156.ckpt",
+  "pretrained_checkpoint_path": "sentinel/lightning_logs/experiments/exp01_zero_shot/version_3/checkpoints/gapfiller-epoch=45-MAE_val=0.0097.ckpt",
+  "num_finetuning_samples": 6400,
+  "eval_dataset_path": "sentinel/data/gap_filling",
+  "eval_date": "2026-08-26T18:04:23",
+  "git_commit": "22989cfbd59930c89d2d816c413b4d298ac3e1bc",
+  "model": {
+    "num_params": 11895136,
+    "num_trainable_params": 11895136,
+    "embed_dim": 192,
+    "depth": 12,
+    "num_heads": 3,
+    "decoder_heads": 1,
+    "patch_size": 4,
+    "image_size": 128,
+    "num_frames": 5,
+    "in_channels": 10,
+    "out_channels": 10
+  }
+}

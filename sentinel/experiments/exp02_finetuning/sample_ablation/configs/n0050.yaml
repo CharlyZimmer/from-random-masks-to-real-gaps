@@ -1,0 +1,49 @@
+experiment:
+  id: "exp02_finetuning_n0050"
+  description: "Sample-efficiency ablation of exp02_finetuning: fine-tune on 50 samples (20 epochs) instead of the full available training split."
+  type: "finetuning"
+  parent_experiment: "exp02_finetuning"
+
+data:
+  # Identical to exp02_finetuning/config.yaml -- reuses the pretraining LMDB as
+  # the x-source and joins it with the lean gap-mask LMDB by idx manifest (see
+  # model_gap_aware/lmdb_training.py::PretrainGapMaskJoinDataModule). Subsetting to N=50
+  # happens at runtime via --max_samples 50, passed by
+  # scripts/{local,slurm}/train*.sh -- config.yaml has no schema for it (see
+  # sentinel/experiments/scripts/run_training.py and
+  # sentinel/src/training/gap_aware_training.py: --max_samples is CLI-only).
+  train_lmdb:    "${S2_LMDB_PATH}"
+  gap_mask_lmdb: "${S2_GAP_FILLING_TRAINING_DIR}/lmdb/gap_masks.lmdb"
+  eval_dir:      "${S2_DATA_DIR}/gap_filling"
+
+model:
+  # Same pretrained source as exp02_finetuning: exp01_zero_shot's own tracked
+  # checkpoint (auto-discovered: lowest MAE_val under pretrained_log_dir).
+  pretrained_checkpoint: null
+  pretrained_log_dir: "sentinel/lightning_logs/experiments/exp01_zero_shot"
+
+training:
+  log_dir: "sentinel/lightning_logs/experiments/exp02_finetuning/sample_ablation/n0050"
+  # Same 20 epochs for every variant (and for exp02_finetuning), so only the
+  # fine-tuning sample count varies.
+  max_epochs: 20
+  # devices=1, NOT shared_config's default of 4: at N=50, 4-way DDP
+  # (batch_size=8) gives per-replica steps_per_epoch = (n_train=48 // 4) // 8
+  # = 1 -- too thin to train on. Single-GPU avoids the data-sharding
+  # breakage entirely (steps_per_epoch = 48 // 8 = 6).
+  devices: 1
+  # base_lr rescaled 4x vs n0400-n12800 (1e-5 -> 4e-5) to compensate for the
+  # devices change: run_training.py computes effective lr = base_lr * n_devices,
+  # so this keeps the actual peak LR identical (4e-5) across all 9 sample-count
+  # variants -- otherwise switching to devices=1 would silently also change the
+  # LR, confounding the sample-count comparison.
+  base_lr: 4.0e-5
+  # warmup_steps: ~1 epoch's worth of steps (n_train // batch_size, not
+  # divided by devices), so the LR ramp does not perturb the already-converged
+  # checkpoint; floored at 10. At N=50 (batch_size=8, val_split=0.05):
+  # n_train=48, steps_per_epoch=48//8=6
+  # (see sample_ablation/README.md for the full per-N derivation table).
+  warmup_steps: 10
+
+slurm:
+  job_name: "exp02_n0050_ft"

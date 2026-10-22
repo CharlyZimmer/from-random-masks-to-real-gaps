@@ -1,0 +1,12 @@
+{
+  "experiment_id": "linear_interpolation_baseline",
+  "eval_dataset_path": "esdc/data/lst_gap_filling/dataset.h5",
+  "eval_date": "2026-08-03T21:11:51",
+  "git_commit": "2c630cc7513de3021a65872bc537a0d5e416d58e",
+  "method": {
+    "name": "linear_interpolation",
+    "library": "scipy.interpolate.griddata",
+    "fallback": "nearest (points outside convex hull, or whole sample if triangulation is degenerate)",
+    "n_jobs": 16
+  }
+}

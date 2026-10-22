@@ -1,0 +1,58 @@
+{
+  "mean_mae_normalized": 0.024134866893291473,
+  "mean_mae_kelvin": 4.3443,
+  "per_band_mae_normalized": [
+    0.024134866893291473
+  ],
+  "per_band_mae_kelvin": [
+    4.3443
+  ],
+  "n_samples": 4569,
+  "gap_coverage_mean": 0.7878955516285019,
+  "gap_coverage_std": 0.15077621818853146,
+  "norm_range": [
+    180.0,
+    360.0
+  ],
+  "gap_ratio_groups": {
+    "full": {
+      "mean_mae_normalized": 0.024134866893291473,
+      "mean_mae_kelvin": 4.3443,
+      "per_band_mae_normalized": [
+        0.024134866893291473
+      ],
+      "per_band_mae_kelvin": [
+        4.3443
+      ],
+      "n_samples": 4569,
+      "gap_coverage_mean": 0.7878955516285019,
+      "gap_coverage_std": 0.15077621818853146
+    },
+    "max_0.10": {
+      "mean_mae_normalized": 0.02495608478784561,
+      "mean_mae_kelvin": 4.4921,
+      "per_band_mae_normalized": [
+        0.02495608478784561
+      ],
+      "per_band_mae_kelvin": [
+        4.4921
+      ],
+      "n_samples": 3349,
+      "gap_coverage_mean": 0.828498683142356,
+      "gap_coverage_std": 0.13525309541188002
+    },
+    "max_0.00": {
+      "mean_mae_normalized": 0.028356162831187248,
+      "mean_mae_kelvin": 5.1041,
+      "per_band_mae_normalized": [
+        0.028356162831187248
+      ],
+      "per_band_mae_kelvin": [
+        5.1041
+      ],
+      "n_samples": 1281,
+      "gap_coverage_mean": 0.8657863119633099,
+      "gap_coverage_std": 0.12996541830904532
+    }
+  }
+}

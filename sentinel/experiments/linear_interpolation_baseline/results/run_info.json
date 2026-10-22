@@ -1,0 +1,12 @@
+{
+  "experiment_id": "linear_interpolation_baseline",
+  "eval_dataset_path": "sentinel/data/gap_filling",
+  "eval_date": "2026-08-18T12:56:12",
+  "git_commit": "c746413b851fcf6c733b6e036d32559d7053a12e",
+  "method": {
+    "name": "linear_interpolation",
+    "library": "scipy.interpolate.griddata",
+    "fallback": "nearest (points outside convex hull, or whole band if triangulation is degenerate)",
+    "n_jobs": 16
+  }
+}

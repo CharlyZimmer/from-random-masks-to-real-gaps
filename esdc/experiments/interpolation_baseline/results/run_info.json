@@ -1,0 +1,12 @@
+{
+  "experiment_id": "interpolation_baseline",
+  "eval_dataset_path": "esdc/data/lst_gap_filling/dataset.h5",
+  "eval_date": "2026-07-24T14:57:18",
+  "git_commit": "7a2b972d0cda0cd6f59967468da6ed87f63e66ee",
+  "method": {
+    "name": "ordinary_kriging",
+    "library": "pykrige",
+    "variogram_model": "linear",
+    "n_jobs": 16
+  }
+}

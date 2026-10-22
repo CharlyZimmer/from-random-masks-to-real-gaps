@@ -1,0 +1,43 @@
+experiment:
+  id: "exp02_finetuning_n0800"
+  description: "Sample-efficiency ablation of exp02_finetuning: fine-tune on 800 samples (20 epochs) instead of the full ~28,000-sample/50-epoch run."
+  type: "finetuning"
+  parent_experiment: "exp02_finetuning"
+
+data:
+  # Identical to exp02_finetuning/config.yaml. Subsetting to N=800 happens at
+  # runtime via `--max_samples 800`, passed by scripts/{local,slurm}/train*.sh
+  # -- config.yaml has no schema for it (see esdc/experiments/scripts/run_training.py
+  # and esdc/src/training/gap_aware_training.py: --max_samples is CLI-only).
+  train_lmdb:   "${ESDC_GAP_FILLING_TRAINING_DIR}/lmdb/dataset_test.lmdb"
+  train_lmdb_y: "${ESDC_GAP_FILLING_TRAINING_DIR}/lmdb/dataset_test_y.lmdb"
+  eval_h5:      "${ESDC_GAP_FILLING_DIR}/dataset.h5"
+  max_gap_portion: 0.2
+
+model:
+  # Same pretrained source as exp02_finetuning: exp01_zero_shot's own tracked
+  # checkpoint (auto-discovered: lowest MAE_val under pretrained_log_dir).
+  pretrained_checkpoint: null
+  pretrained_log_dir: "esdc/lightning_logs/experiments/exp01_zero_shot"
+
+training:
+  log_dir: "esdc/lightning_logs/experiments/exp02_finetuning/sample_ablation/n0800"
+  # Same for every variant -- this ablation isolates fine-tuning sample count,
+  # not epoch count.
+  max_epochs: 20
+  # Must be set explicitly: run_training.py merges shared_config.yaml + this
+  # file only, it does NOT chain through parent_experiment. Omitting this would
+  # silently fall back to shared_config.yaml's base_lr=1e-4, which is tuned for
+  # training from scratch, not for fine-tuning an already-converged checkpoint.
+  # With devices=4, run_training.py's lr = base_lr * n_devices gives a peak LR
+  # of 4e-5, the same as every other variant.
+  base_lr: 1.0e-5
+  # warmup_steps: ~1 epoch's worth of steps, to avoid the LR ramp perturbing an
+  # already-converged checkpoint.
+  # At N=800 (devices=4, batch_size=16, val_split=0.05): n_train=760,
+  # steps_per_epoch=(760//4)//16=11, total_steps=11*20=220
+  # (see sample_ablation/README.md for the full per-N derivation table).
+  warmup_steps: 11
+
+slurm:
+  job_name: "exp02_n0800_ft"

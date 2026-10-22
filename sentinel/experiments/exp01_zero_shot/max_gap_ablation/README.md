@@ -1,0 +1,125 @@
+# exp01_zero_shot — Max-Gap-Ratio Ablation (Sentinel)
+
+Sentinel port of `esdc/experiments/exp01_zero_shot/max_gap_ablation/`. Same
+two-variants-plus-reused-baseline design: tests **0% and 10%**, compared
+against `exp01_zero_shot` itself as the **20%** reference (see below for why
+20% doesn't need its own training run).
+
+## What this ablation tests
+
+Sentinel's pre-training LMDB (`$S2_LMDB_PATH`) is built by
+`sentinel_spatiotemporal_downloader.py`, which discards any candidate patch
+whose middle frame has more than `--max_gap_ratio` cloud/shadow/out-of-swath
+fraction (default and actual value used: `0.2` — see
+`sentinel/scripts/{local,slurm}/download_data.sh`). This is a direct parallel
+to ESDC's `max_gap_portion=0.2` at dataset-creation time. This ablation asks
+how much that threshold matters for `exp01_zero_shot`'s zero-shot
+gap-filling performance, by testing two stricter thresholds: **0%** (only
+fully gap-free targets) and **10%**.
+
+Unlike the download-time knob, this ablation does **not** re-download or
+rebuild any dataset. It **post-hoc filters the already-existing pre-training
+LMDB** (`$S2_LMDB_PATH` / its `_test.lmdb`) at training time, via the
+`max_gap_ratio`/`gap_ratio_channel` parameters on
+`ConsecutiveLMDBDataset`/`LMDBConsecutiveDataModule`
+(`model_gap_aware/lmdb_training.py`, shared with ESDC). For each
+sample, the middle input frame's **band-0 NaN ratio** is computed once at
+dataset construction, and samples above the threshold are dropped before the
+train/val split.
+
+**Why band 0 is a valid representative channel:** Sentinel has no single
+"primary variable" like ESDC's LST (`TARGET_CHANNELS = list(range(10))`, all
+10 bands are reconstructed). But `gee_utils.py` builds the natural gap mask
+per pixel as `np.all(band_stack == 0, axis=-1)` and then sets **all 10
+bands** to NaN at that pixel (`arr[gap_mask] = np.nan`) — cloud/shadow
+masking is spatially uniform across bands, not per-band. So any single
+band's NaN ratio equals every other band's NaN ratio for the same sample,
+and filtering on band 0 (B2) is equivalent to filtering on the full
+10-band NaN ratio, without needing to extend the shared filter to an
+aggregate-across-channels criterion.
+
+**Why there's no `gap020` variant.** `exp01_zero_shot`'s own pre-training
+LMDB was already built with a 0.2 cap at download time (see above), so
+post-hoc filtering it at `max_gap_ratio=0.2` keeps close to 100% of samples
+(39/40 train samples on a small local subset, vs. 30/40 at 0.0 and 35/40 at
+0.1). A third full pre-training run at 0.2 would be nearly a duplicate of
+`exp01_zero_shot` itself for the cost of another multi-day 4-GPU HPC job, so
+(exactly as ESDC's version of this ablation does) `exp01_zero_shot` is
+reused directly as the 20% reference row instead of retraining it.
+
+Each of the two variants is an **independent from-scratch pre-training run**
+(`type: zero_shot`, same as `exp01_zero_shot` itself) — not a fine-tune of
+an existing checkpoint. Architecture and all other hyperparameters are
+identical to `exp01_zero_shot`'s own `config.yaml`/`shared_config.yaml`
+(embed_dim=192, depth=12, num_heads=3, patch_size=4, 50 epochs, batch_size=8,
+devices=4, `gap_only_masking=false`) — only `data.max_gap_ratio` and
+`training.log_dir` differ per variant. Each checkpoint is then evaluated
+zero-shot (`gap_only_masking=True`, no fine-tuning, `--normalize`) on the
+same canonical eval set as every other experiment (`$S2_DATA_DIR/gap_filling`).
+
+This ablation does not change `exp01_zero_shot` itself.
+
+**No natural-gap-ratio subset breakdown.** ESDC's version of this ablation
+additionally splits the eval MAE by each sample's own natural
+(pre-donor-injection) gap ratio (`gap_ratio_groups` in `metrics.json`).
+Sentinel's `evaluate_gapfilling.py` has no equivalent grouping, so
+`results/RESULTS.md` here is a single table, as in
+`sentinel/experiments/exp02_finetuning/sample_ablation/`.
+
+## Local sample counts
+
+Measured on a small local pre-training LMDB (`sentinel/data/ssl4eo_consecutive_s2c.lmdb` /
+`_test.lmdb`, 40 train / 5 test raw entries):
+
+| Variant | max_gap_ratio | Train kept | Test kept |
+|---|---|---|---|
+| gap000 | 0.0 | 30 / 40 (75.0%) | 5 / 5 (100%) |
+| gap010 | 0.1 | 35 / 40 (87.5%) | 5 / 5 (100%) |
+| (gap020, for reference only) | 0.2 | 39 / 40 (97.5%) | 5 / 5 (100%) |
+
+The 0.2 row supports the "no `gap020` variant" reasoning above. It keeps
+almost all samples, so `exp01_zero_shot` is reused instead of training a
+separate variant.
+
+Both variants exceed the local sanity-check scale (`--max_samples 10`). On
+the full dataset, the filter prints a `kept N/M samples` line at startup.
+
+## Directory layout / how to run
+
+```
+max_gap_ablation/
+├── configs/{gap000,gap010}.yaml                — one config per variant
+├── results/{gap000,gap010}/                    — metrics.json + run_info.json once evaluated
+├── results/RESULTS.md                          — generated by collect_results.py
+└── scripts/
+    ├── local/{train,evaluate}.sh               — CPU sanity check, both variants, tiny model
+    ├── slurm/{train,evaluate}_{gap000,gap010}.sh  — real GPU runs, one script per variant/op
+    └── collect_results.py                      — aggregates results/{gap000,gap010}/ + exp01_zero_shot reference → RESULTS.md
+```
+
+**Local** (from the project root, `conda activate gap-aware`):
+```bash
+bash sentinel/experiments/exp01_zero_shot/max_gap_ablation/scripts/local/train.sh
+bash sentinel/experiments/exp01_zero_shot/max_gap_ablation/scripts/local/evaluate.sh
+```
+CPU, tiny model, `--max_epochs 2 --max_samples 10` for both variants — this
+only proves the two differently-filtered variants train/evaluate without
+error. Local evaluation doesn't write tracked results (matches every other
+experiment's local sanity-check convention).
+
+**HPC**:
+```bash
+sbatch sentinel/experiments/exp01_zero_shot/max_gap_ablation/scripts/slurm/train_gap000.sh
+sbatch sentinel/experiments/exp01_zero_shot/max_gap_ablation/scripts/slurm/train_gap010.sh
+# once each finishes:
+sbatch sentinel/experiments/exp01_zero_shot/max_gap_ablation/scripts/slurm/evaluate_gap000.sh
+sbatch sentinel/experiments/exp01_zero_shot/max_gap_ablation/scripts/slurm/evaluate_gap010.sh
+```
+
+## Results
+
+Regenerate the table after evaluating:
+```bash
+python sentinel/experiments/exp01_zero_shot/max_gap_ablation/scripts/collect_results.py
+```
+See `results/RESULTS.md`.

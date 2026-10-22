@@ -1,0 +1,69 @@
+experiment:
+  id: "exp02_finetuning"
+  description: "Pretrained model fine-tuned on the gap-filling training dataset (fresh optimizer)."
+  type: "finetuning"
+
+  parent_experiment: "exp01_zero_shot"
+
+data:
+  # Fine-tune on the TEST split of the gap-filling-training dataset, not the
+  # train split. ESDC_GAP_FILLING_TRAINING_DIR and ESDC_DATA_DIR (pretraining)
+  # apply the identical deterministic block -> train/test split, so the train
+  # split here holds the same underlying observations the pretrained model
+  # already saw (just with synthetic gaps added) -- fine-tuning on it would
+  # leak. The test split is guaranteed unseen during pretraining. No further
+  # held-out split is carved out of it; the comparable final metric comes
+  # from evaluate_gapfilling.py against ESDC_GAP_FILLING_DIR (see
+  # scripts/slurm/evaluate.sh), exactly like exp01/exp04.
+  train_lmdb:   "${ESDC_GAP_FILLING_TRAINING_DIR}/lmdb/dataset_test.lmdb"
+  train_lmdb_y: "${ESDC_GAP_FILLING_TRAINING_DIR}/lmdb/dataset_test_y.lmdb"
+  eval_h5:      "${ESDC_GAP_FILLING_DIR}/dataset.h5"
+  max_gap_portion: 0.2
+  # Fine-tuning sample count is N=100, based on sample_ablation/results/RESULTS.md:
+  # 50->100 samples gives by far the largest MAE improvement (0.0245->0.0183 norm),
+  # while 100->12800 only improves to 0.0168 -- diminishing returns past 100.
+  # Subsetting to N=100 happens at runtime via `--max_samples 100`, passed by
+  # scripts/{local,slurm}/train.sh -- config.yaml has no schema for it (see
+  # esdc/experiments/scripts/run_training.py and
+  # esdc/src/training/gap_aware_training.py: --max_samples is CLI-only).
+
+model:
+  # Always fine-tune from exp01_zero_shot's own tracked checkpoint (auto-
+  # discovered: lowest MAE_val under pretrained_log_dir). Deliberately NOT
+  # sourced from ESDC_PRETRAINED_CKPT: that variable points at the checkpoint
+  # produced by the separate, non-experiment-tracked esdc/scripts/*/training.sh
+  # pipeline, which trains a different (384/8/6) architecture than the
+  # 192/12/3 (ViT-Ti) shared by all experiment-family runs (see
+  # shared_config.yaml) -- loading it here would silently fine-tune the wrong
+  # model.
+  pretrained_checkpoint: null
+  pretrained_log_dir: "esdc/lightning_logs/experiments/exp01_zero_shot"
+
+training:
+  log_dir: "esdc/lightning_logs/experiments/exp02_finetuning"
+  # Fine-tuning-specific LR schedule -- shared_config.yaml's base_lr=1e-4 and
+  # warmup_steps=10000 are tuned for training from scratch (exp01/exp04).
+  # A long warmup with a high peak LR perturbs an already-converged checkpoint
+  # away from its optimum: in a full-dataset fine-tuning run with the 10000-step
+  # warmup, train/val MAE both rose during the warmup phase and only recovered
+  # once cosine decay brought the LR back down. Hence a much shorter warmup and
+  # a lower peak LR.
+  #
+  # These settings mirror sample_ablation/configs/n0100.yaml (see
+  # sample_ablation/README.md for the per-N derivation table):
+  #   n_train=95, devices=1, steps_per_epoch=95//16=5, total_steps=5*20=100
+  # devices=1 (not shared_config.yaml's default of 4): at N=100, 4-way DDP
+  # gives steps_per_epoch=(95//4)//16=1, which is too coarse.
+  devices: 1
+  # run_training.py computes the effective lr = base_lr * n_devices, so with
+  # devices=1 this gives a peak LR of 4e-5, the same as all sample_ablation
+  # variants.
+  base_lr: 4.0e-5
+  # ~1 epoch of warmup (5 steps/epoch), floored at 10 per sample_ablation's
+  # convention to avoid a degenerately short ramp.
+  warmup_steps: 10
+  # 20 epochs, matching n0100.yaml and every other sample_ablation variant.
+  max_epochs: 20
+
+slurm:
+  job_name: "exp02_finetune"

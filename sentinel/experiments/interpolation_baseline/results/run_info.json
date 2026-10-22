@@ -1,0 +1,13 @@
+{
+  "experiment_id": "interpolation_baseline",
+  "eval_dataset_path": "sentinel/data/gap_filling",
+  "eval_date": "2026-08-21T19:56:58",
+  "git_commit": "49c3bab78e4d73379ab843e1890ba9110a4455ef",
+  "method": {
+    "name": "ordinary_kriging",
+    "library": "pykrige",
+    "variogram_model": "linear",
+    "max_obs_points": 2000,
+    "n_jobs": 16
+  }
+}

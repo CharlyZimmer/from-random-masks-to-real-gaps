@@ -1,0 +1,16 @@
+experiment:
+  id: "linear_interpolation_baseline"
+  description: "Linear spatial interpolation baseline (no learned model, no aux variable)."
+  type: "non_learned_baseline"
+
+  parent_experiment: null
+
+data:
+  eval_h5: "${ESDC_GAP_FILLING_DIR}/dataset.h5"
+
+interpolation:
+  method: "linear"
+  n_jobs: 1
+
+slurm:
+  job_name: "linear_interp_baseline_eval"

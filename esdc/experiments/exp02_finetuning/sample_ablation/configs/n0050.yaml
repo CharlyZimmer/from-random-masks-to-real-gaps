@@ -1,0 +1,47 @@
+experiment:
+  id: "exp02_finetuning_n0050"
+  description: "Sample-efficiency ablation of exp02_finetuning: fine-tune on 50 samples (20 epochs) instead of the full ~28,000-sample/50-epoch run."
+  type: "finetuning"
+  parent_experiment: "exp02_finetuning"
+
+data:
+  # Identical to exp02_finetuning/config.yaml. Subsetting to N=50 happens at
+  # runtime via `--max_samples 50`, passed by scripts/{local,slurm}/train*.sh
+  # -- config.yaml has no schema for it (see esdc/experiments/scripts/run_training.py
+  # and esdc/src/training/gap_aware_training.py: --max_samples is CLI-only).
+  train_lmdb:   "${ESDC_GAP_FILLING_TRAINING_DIR}/lmdb/dataset_test.lmdb"
+  train_lmdb_y: "${ESDC_GAP_FILLING_TRAINING_DIR}/lmdb/dataset_test_y.lmdb"
+  eval_h5:      "${ESDC_GAP_FILLING_DIR}/dataset.h5"
+  max_gap_portion: 0.2
+
+model:
+  # Same pretrained source as exp02_finetuning: exp01_zero_shot's own tracked
+  # checkpoint (auto-discovered: lowest MAE_val under pretrained_log_dir).
+  pretrained_checkpoint: null
+  pretrained_log_dir: "esdc/lightning_logs/experiments/exp01_zero_shot"
+
+training:
+  log_dir: "esdc/lightning_logs/experiments/exp02_finetuning/sample_ablation/n0050"
+  # Same for every variant -- this ablation isolates fine-tuning sample count,
+  # not epoch count.
+  max_epochs: 20
+  # devices=1, NOT shared_config's default of 4 (unlike n0400-n12800): at
+  # N=50, 4-way DDP gives steps_per_epoch = (n_train=48 // 4) // batch_size=16
+  # = 0 -- literally zero training steps. Single-GPU avoids the data-sharding
+  # breakage entirely (steps_per_epoch = 48 // 16 = 3).
+  devices: 1
+  # base_lr rescaled 4x vs n0400-n12800 (1e-5 -> 4e-5) to compensate for the
+  # devices change: run_training.py computes effective lr = base_lr * n_devices,
+  # so this keeps the actual peak LR identical (4e-5) across all 9 sample-count
+  # variants -- otherwise switching to devices=1 would silently also change the
+  # LR, confounding the sample-count comparison.
+  base_lr: 4.0e-5
+  # warmup_steps: ~1 epoch's worth of steps, mirroring exp02_finetuning's own
+  # rationale ("~1 epoch of warmup, to avoid LR perturbing an already-converged
+  # checkpoint"), floored at 10. At N=50 (devices=1, batch_size=16, val_split=0.05):
+  # n_train=48, steps_per_epoch=48//16=3, total_steps=3*20=60
+  # (see sample_ablation/README.md for the full per-N derivation table).
+  warmup_steps: 10
+
+slurm:
+  job_name: "exp02_n0050_ft"

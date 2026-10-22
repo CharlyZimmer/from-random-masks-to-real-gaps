@@ -1,0 +1,42 @@
+experiment:
+  id: "exp04_scratch_gapfilling"
+  description: "Training from scratch on the gap-filling dataset (gap_only_masking). Baseline for the learned methods."
+  type: "training_from_scratch"
+
+  parent_experiment: null
+
+data:
+  # The gap-filling training set reuses the pretraining LMDB directly as the
+  # x-source (no duplicated image copy) -- see
+  # sentinel/src/download_data/sentinel_gapfilling_training_downloader.py.
+  # gap_mask_lmdb/gap_mask_test_lmdb supply only the small per-location
+  # donor gap mask; (x_gappy, y) are reconstructed at runtime by joining
+  # these with train_lmdb (and its own _test.lmdb sibling, auto-derived by
+  # gap_aware_training.py) via idx manifests
+  # (model_gap_aware/lmdb_training.py::PretrainGapMaskJoinDataset). No
+  # separate test_lmdb key is needed here -- the pretraining test LMDB
+  # (shared with exp01/exp03) is resolved automatically.
+  train_lmdb:         "${S2_LMDB_PATH}"
+  gap_mask_lmdb:       "${S2_GAP_FILLING_TRAINING_DIR}/lmdb/gap_masks.lmdb"
+  gap_mask_test_lmdb:  "${S2_GAP_FILLING_TRAINING_DIR}/lmdb/gap_masks_test.lmdb"
+  eval_dir:            "${S2_DATA_DIR}/gap_filling"
+
+training:
+  log_dir: "sentinel/lightning_logs/experiments/exp04_scratch_gapfilling"
+  # Scale warmup_steps down from shared_config.yaml's from-scratch default
+  # (10000, tuned for exp01's 194,805-sample corpus -- 216,451 raw
+  # SSL-consecutive locations split 90/10 by create_LMDB.py --test_split 0.1)
+  # to preserve roughly the same warmup *fraction* of real training for
+  # exp04's smaller 162,430-sample corpus (203,038 raw gap_masks locations
+  # split 80/20 by create_gap_mask_lmdb.py --test_split 0.2; ~3.46%, matching
+  # exp01's own ~3.46%). gap_aware_training.py divides steps per epoch by
+  # devices, so total_steps reflects the real DDP step count.
+  # base_lr/devices/max_epochs stay at the shared from-scratch defaults --
+  # exp04 trains from random init like exp01, unlike exp02's finetuning
+  # regime (see exp02_finetuning/config.yaml's rationale), so a
+  # finetuning-style low LR/short warmup is not the right analogy here.
+  # results/run_info.json's num_finetuning_samples records the 162,430.
+  warmup_steps: 8338
+
+slurm:
+  job_name: "exp04_scratch"
